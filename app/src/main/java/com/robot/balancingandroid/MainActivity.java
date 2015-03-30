@@ -1,17 +1,31 @@
 package com.robot.balancingandroid;
 
+import android.content.Context;
+import android.content.pm.ActivityInfo;
+import android.hardware.SensorManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-
 public class MainActivity extends ActionBarActivity {
+
+    PulseGenerator noise;
+    Thread noiseThread;
+
+    Estimator estimator;
+    Thread estimatorThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        estimator = new Estimator((SensorManager) this.getSystemService(Context.SENSOR_SERVICE));
+
+        noise = new PulseGenerator();
+        noiseThread = new Thread(noise);
     }
 
 
@@ -35,5 +49,49 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        //estimator.registerListeners();
+    }
+
+    @Override
+    protected void onPause()
+    {
+        //estimator.unregisterListeners();
+        super.onPause();
+    }
+
+    @Override
+    protected void onStart()
+    {
+        if (!noiseThread.isAlive())
+            noiseThread.start();
+
+        noise.setPulsePercent(50, 0);
+        noise.setPulsePercent(50, 2);
+
+        if(!noise.isPlaying())
+            noise.togglePlayback();
+
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop()
+    {
+        noise.stop();
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        noise.stop();
+        // soundToggleButton.setChecked(false);
+        super.onDestroy();
     }
 }
