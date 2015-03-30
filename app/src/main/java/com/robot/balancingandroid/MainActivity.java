@@ -1,14 +1,46 @@
 package com.robot.balancingandroid;
 
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
+import org.opencv.core.Mat;
+
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.hardware.SensorManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends Activity implements CvCameraViewListener2 {
+
+    private static final String TAG = "BalancingAndroid";
+
+    private CameraBridgeViewBase openCvCameraView;
+
+    private BaseLoaderCallback loaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status)
+            {
+                case LoaderCallbackInterface.SUCCESS:
+                {
+                    Log.i(TAG, "OpenCV loaded successfully");
+                    openCvCameraView.enableView();
+                } break;
+                default:
+                {
+                    super.onManagerConnected(status);
+                } break;
+            }
+        }
+    };
 
     PulseGenerator noise;
     Thread noiseThread;
@@ -26,6 +58,9 @@ public class MainActivity extends ActionBarActivity {
 
         noise = new PulseGenerator();
         noiseThread = new Thread(noise);
+
+        openCvCameraView = (CameraBridgeViewBase) findViewById(R.id.java_surface_view);
+        openCvCameraView.setCvCameraViewListener(this);
     }
 
 
@@ -56,6 +91,8 @@ public class MainActivity extends ActionBarActivity {
     {
         super.onResume();
         //estimator.registerListeners();
+
+        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_10, this, loaderCallback);
     }
 
     @Override
@@ -63,6 +100,10 @@ public class MainActivity extends ActionBarActivity {
     {
         //estimator.unregisterListeners();
         super.onPause();
+        if (openCvCameraView != null)
+        {
+            openCvCameraView.disableView();
+        }
     }
 
     @Override
@@ -93,5 +134,22 @@ public class MainActivity extends ActionBarActivity {
         noise.stop();
         // soundToggleButton.setChecked(false);
         super.onDestroy();
+        if (openCvCameraView != null)
+        {
+            openCvCameraView.disableView();
+        }
+    }
+
+    public void onCameraViewStarted(int width, int height)
+    {
+    }
+
+    public void onCameraViewStopped()
+    {
+    }
+
+    public Mat onCameraFrame(CvCameraViewFrame inputFrame)
+    {
+        return inputFrame.rgba();
     }
 }
