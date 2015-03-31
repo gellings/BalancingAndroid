@@ -7,6 +7,7 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
 import android.content.Context;
@@ -22,25 +23,15 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     private static final String TAG = "BalancingAndroid";
 
-    private CameraBridgeViewBase openCvCameraView;
-
-    private BaseLoaderCallback loaderCallback = new BaseLoaderCallback(this) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status)
-            {
-                case LoaderCallbackInterface.SUCCESS:
-                {
-                    Log.i(TAG, "OpenCV loaded successfully");
-                    openCvCameraView.enableView();
-                } break;
-                default:
-                {
-                    super.onManagerConnected(status);
-                } break;
-            }
+    static {
+        if (OpenCVLoader.initDebug()) {
+            Log.i(TAG, "OpenCV successfully loaded");
+        } else {
+            Log.e(TAG, "OpenCV failed to load");
         }
-    };
+    }
+
+    private CameraBridgeViewBase openCvCameraView;
 
     PulseGenerator noise;
     Thread noiseThread;
@@ -92,7 +83,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         super.onResume();
         //estimator.registerListeners();
 
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_10, this, loaderCallback);
+        openCvCameraView.enableView();
     }
 
     @Override
@@ -150,6 +141,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame)
     {
-        return inputFrame.rgba();
+        Mat frame = inputFrame.gray();
+        Mat edges = new Mat();
+        Imgproc.Canny(frame, edges, 10, 100);
+
+        Mat display = new Mat();
+        Imgproc.cvtColor(edges, display, Imgproc.COLOR_GRAY2BGR);
+        return display;
     }
 }
