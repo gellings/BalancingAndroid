@@ -196,6 +196,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
                 if (statusArray[i] != 0) {
                     Core.circle(display, prevPtsArray[i], 5, new Scalar(0, 255, 0));
                     Core.line(display, prevPtsArray[i], nextPtsArray[i], new Scalar(0, 0, 255));
+                } else {
+                    Core.circle(display, prevPtsArray[i], 5, new Scalar(255, 0, 0));
                 }
             }
         } else {
