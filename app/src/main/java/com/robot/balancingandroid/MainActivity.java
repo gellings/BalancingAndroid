@@ -55,10 +55,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     Thread noiseThread;
 
     Estimator estimator;
-    Thread estimatorThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -83,25 +83,10 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     protected void onResume()
     {
         super.onResume();
-        //estimator.registerListeners();
+        estimator.registerListeners();
 
         openCvCameraView.enableView();
         initialized = false;
@@ -110,7 +95,8 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
     @Override
     protected void onPause()
     {
-        //estimator.unregisterListeners();
+        estimator.unregisterListeners();
+
         super.onPause();
         if (openCvCameraView != null)
         {
@@ -127,7 +113,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
         noise.setPulsePercent(50, 0);
         noise.setPulsePercent(50, 2);
 
-        if(!noise.isPlaying())
+        if(noise.isPlaying()) //change this to make the noise work
             noise.togglePlayback();
 
         super.onStart();
