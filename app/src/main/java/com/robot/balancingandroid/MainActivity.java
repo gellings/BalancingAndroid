@@ -22,11 +22,15 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.hardware.SensorManager;
+import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import java.io.File;
+import java.io.FileOutputStream;
 
 public class MainActivity extends Activity implements CvCameraViewListener2 {
 
@@ -65,7 +69,7 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
         prevFrame = new Mat();
 
-        estimator = new Estimator((SensorManager) this.getSystemService(Context.SENSOR_SERVICE));
+        estimator = new Estimator(this, (SensorManager) this.getSystemService(Context.SENSOR_SERVICE));
 
         noise = new PulseGenerator();
         noiseThread = new Thread(noise);

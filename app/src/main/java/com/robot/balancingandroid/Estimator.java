@@ -1,14 +1,26 @@
 package com.robot.balancingandroid;
 
+import android.app.Activity;
+import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Environment;
+import android.os.SystemClock;
+import android.util.Log;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 
 import static android.os.SystemClock.*;
 
@@ -17,6 +29,8 @@ import static android.os.SystemClock.*;
  */
 public class Estimator
 {
+    private static final String TAG = "BalancingAndroid";
+
     private SensorManager sensorManager;
 
     private Sensor gyro = null;
@@ -62,7 +76,9 @@ public class Estimator
 
     private long lastTime;
 
-    public Estimator(SensorManager sm) {
+    private FileOutputStream outputStream;
+
+    public Estimator(Activity mainAct, SensorManager sm) {
 
         sensorManager = sm;
 
@@ -81,7 +97,7 @@ public class Estimator
         B.put(2,0,val);
 
         C = Mat.eye(3,3,CvType.CV_32FC1);
-        val = l2;
+        val = l1;
         C.put(2,2,val);
 
         L = Mat.zeros(3, 3, CvType.CV_32FC1);
@@ -93,6 +109,31 @@ public class Estimator
 
         if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null)
             accel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        String filename = "myFile.txt";
+
+        if( Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()))
+        {
+            File myDir = new File(Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS), "myFolder");
+            //Log.i(TAG, myDir.getPath().toString());
+            if (!myDir.mkdirs()) {
+                Log.e(TAG, "Directory not created");
+            }
+            File file = new File(myDir.getPath(), filename);
+
+            if(file.exists()) file.delete();
+
+            try {
+                outputStream = new FileOutputStream(file);
+                //outputStream.write(test.getBytes());
+                //outputStream.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else
+            Log.e(TAG, "media bocked");
     }
 
     public void registerListeners() {
@@ -106,6 +147,13 @@ public class Estimator
     }
 
     public void unregisterListeners() {
+
+        try {
+            outputStream.close();
+        } catch (IOException e) {
+            Log.e(TAG, "could not close");
+            //e.printStackTrace();
+        }
         sensorManager.unregisterListener(sensorListener);
     }
 
@@ -125,7 +173,16 @@ public class Estimator
                 thetaMes = alphaAccelLPF*thetaMes + (1 - alphaAccelLPF)*rawThetaMes;
                 newThetaMes = true;
 
-                updateEstimate();
+                StringBuilder sb = new StringBuilder();
+                sb.append(SystemClock.elapsedRealtime()).append(", ").append(thetaMes).append(", ").append(thetaDotMes).append(", ").append(flowMes).append("\n");
+                try {
+                    outputStream.write(sb.toString().getBytes());
+                } catch (IOException e) {
+                    Log.e(TAG, "could not write");
+                    e.printStackTrace();
+                }
+
+                //updateEstimate();
             }
         }
 
