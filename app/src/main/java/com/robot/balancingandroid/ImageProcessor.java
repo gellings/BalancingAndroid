@@ -15,23 +15,47 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.video.Video;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Created by dpkoch on 4/2/15.
+ * Image processing class
  */
 public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener2 {
+
+    public interface ImageProcessorListener {
+        public void onNewFlow(double flow);
+    }
+
+    List<ImageProcessorListener> listeners;
+
+    public void registerListener(ImageProcessorListener listener)
+    {
+        if (listener != null) {
+            listeners.add(listener);
+        }
+    }
+
+    public void unregisterListener(ImageProcessorListener listener)
+    {
+        if (listener != null) {
+            listeners.remove(listener);
+        }
+    }
 
     private static final String TAG = "ImageProcessor";
 
     // optical flow stuff
     Mat prevFrame;
-    static final int maxFeatures = 500;
+    static final int maxFeatures = 300;
     static final double qualityLevel = 0.1;
-    static final double minDistance = 4.0;
+    static final double minDistance = 2.0;
     boolean initialized;
 
     static final Rect roi = new Rect(100, 100, 400, 400);
 
     ImageProcessor() {
+        listeners = new ArrayList<>();
         prevFrame = new Mat();
     }
 
@@ -85,11 +109,16 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
                     Core.circle(display, prevPtsArray[i], 5, new Scalar(255, 0, 0));
                 }
             }
+
+            for (ImageProcessorListener listener : listeners) {
+                listener.onNewFlow(0.0);
+            }
         } else {
             Log.e(TAG, "No points found!");
         }
 
         frame.copyTo(prevFrame);
+
         return display;
     }
 }

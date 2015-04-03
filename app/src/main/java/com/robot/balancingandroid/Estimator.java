@@ -191,7 +191,7 @@ public class Estimator
         L = Mat.zeros(3, 3, CvType.CV_32FC1);
     }
 
-    public void onFlowChanged(float flow) {
+    public void onFlowChanged(double flow) {
         flowMes = flow;
         newFlowMes = true;
     }

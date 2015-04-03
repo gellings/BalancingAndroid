@@ -8,8 +8,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 
-import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.JavaCameraView;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.highgui.Highgui;
 
 public class MainActivity extends Activity {
 
@@ -23,7 +24,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private CameraBridgeViewBase openCvCameraView;
+    private JavaCameraView cameraView;
     private ImageProcessor imageProcessor;
 
     PulseGenerator noise;
@@ -39,14 +40,18 @@ public class MainActivity extends Activity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         imageProcessor = new ImageProcessor();
+        imageProcessor.registerListener(imageProcessorListener);
 
         estimator = new Estimator((SensorManager) this.getSystemService(Context.SENSOR_SERVICE));
 
         noise = new PulseGenerator();
         noiseThread = new Thread(noise);
 
-        openCvCameraView = (CameraBridgeViewBase) findViewById(R.id.java_surface_view);
-        openCvCameraView.setCvCameraViewListener(imageProcessor);
+        cameraView = (JavaCameraView) findViewById(R.id.java_surface_view);
+        cameraView.setCameraIndex(JavaCameraView.CAMERA_ID_FRONT);
+        cameraView.SetCaptureFormat(Highgui.CV_CAP_ANDROID_GREY_FRAME);
+        cameraView.setMaxFrameSize(320, 240);
+        cameraView.setCvCameraViewListener(imageProcessor);
     }
 
 
@@ -63,7 +68,7 @@ public class MainActivity extends Activity {
         super.onResume();
         estimator.registerListeners();
 
-        openCvCameraView.enableView();
+        cameraView.enableView();
     }
 
     @Override
@@ -72,9 +77,9 @@ public class MainActivity extends Activity {
         estimator.unregisterListeners();
 
         super.onPause();
-        if (openCvCameraView != null)
+        if (cameraView != null)
         {
-            openCvCameraView.disableView();
+            cameraView.disableView();
         }
     }
 
@@ -106,9 +111,18 @@ public class MainActivity extends Activity {
         noise.stop();
         // soundToggleButton.setChecked(false);
         super.onDestroy();
-        if (openCvCameraView != null)
+        if (cameraView != null)
         {
-            openCvCameraView.disableView();
+            cameraView.disableView();
         }
     }
+
+    ImageProcessor.ImageProcessorListener imageProcessorListener = new ImageProcessor.ImageProcessorListener() {
+        @Override
+        public void onNewFlow(double flow) {
+            if (estimator != null) {
+//            estimator.onFlowChanged(flow);
+            }
+        }
+    };
 }
