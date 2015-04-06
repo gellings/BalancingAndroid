@@ -31,6 +31,10 @@ import java.util.Arrays;
  */
 public class PulseGenerator implements Runnable
 {
+    public interface PulseGenListener {
+        public void onCommandUsed();
+    }
+    private PulseGenListener pulseGenListener;
 
     //
     /** The sample rate. 44100hz is native on g1 */
@@ -83,8 +87,9 @@ public class PulseGenerator implements Runnable
     /**
      * Instantiates a new pulse generator.
      */
-    public PulseGenerator()
+    public PulseGenerator(PulseGenListener pgl)
     {
+        pulseGenListener = pgl;
         sampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC);
 
         MIN_PULSE_WIDTH = sampleRate / 1200;
@@ -188,6 +193,7 @@ public class PulseGenerator implements Runnable
                 }
             }
 
+            pulseGenListener.onCommandUsed();
             noiseAudioTrack.write(audioBuffer, 0, bufferlength);
         }
     }

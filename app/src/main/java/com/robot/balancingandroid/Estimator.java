@@ -29,7 +29,13 @@ import static android.os.SystemClock.*;
  */
 public class Estimator
 {
+
     private static final String TAG = "BalancingAndroid";
+
+    public interface EstimatorListener {
+        public void onNewState(Mat state);
+    }
+    private EstimatorListener estimatorListener;
 
     private SensorManager sensorManager;
 
@@ -55,6 +61,7 @@ public class Estimator
 
     private double flowMes = 0;
     private boolean newFlowMes = false;
+    private double FLOW_PIXELS_TO_METERS = .011/200;
 
     //matricies
     public Mat state; //theta, theta_dot, omega (rad, rad/s, rad/s)
@@ -78,9 +85,10 @@ public class Estimator
 
     private FileOutputStream outputStream;
 
-    public Estimator(Activity mainAct, SensorManager sm) {
+    public Estimator(SensorManager sm, EstimatorListener el) {
 
         sensorManager = sm;
+        estimatorListener = el;
 
         state = Mat.zeros(3, 1, CvType.CV_32FC1);
 
@@ -246,10 +254,12 @@ public class Estimator
         Core.add(state, deltaState, state);
 
         L = Mat.zeros(3, 3, CvType.CV_32FC1);
+
+        estimatorListener.onNewState(state);
     }
 
-    public void onFlowChanged(float flow) {
-        flowMes = flow;
+    public void onFlowChanged(double flow) {
+        flowMes = FLOW_PIXELS_TO_METERS * flow;
         newFlowMes = true;
     }
 
@@ -257,7 +267,8 @@ public class Estimator
         return state;
     }
 
-    public void onInputChanged(Mat input) {
-        u = input;
+    public void onInputChanged(float input) {
+        float val = input;
+        u.put(0,0,val);
     }
 }
