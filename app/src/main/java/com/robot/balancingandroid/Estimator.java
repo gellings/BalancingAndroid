@@ -20,8 +20,8 @@ public class Estimator
     public interface EstimatorListener {
         public void onNewState(Mat state);
     }
-
     private EstimatorListener estimatorListener;
+
     private SensorManager sensorManager;
 
     private Sensor gyro = null;
@@ -46,6 +46,7 @@ public class Estimator
 
     private double flowMes = 0;
     private boolean newFlowMes = false;
+    private double FLOW_PIXELS_TO_METERS = .011/200;
 
     //matricies
     public Mat state; //theta, theta_dot, omega (rad, rad/s, rad/s)
@@ -200,7 +201,7 @@ public class Estimator
     }
 
     public void onFlowChanged(double flow) {
-        flowMes = flow;
+        flowMes = FLOW_PIXELS_TO_METERS * flow;
         newFlowMes = true;
     }
 
@@ -208,7 +209,8 @@ public class Estimator
         return state;
     }
 
-    public void onInputChanged(Mat input) {
-        u = input;
+    public void onInputChanged(float input) {
+        float val = input;
+        u.put(0,0,val);
     }
 }

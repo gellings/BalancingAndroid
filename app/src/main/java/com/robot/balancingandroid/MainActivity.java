@@ -13,6 +13,8 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 import org.opencv.highgui.Highgui;
 
+import static android.os.SystemClock.elapsedRealtimeNanos;
+
 public class MainActivity extends Activity {
 
     private static final String TAG = "BalancingAndroid";
@@ -34,6 +36,8 @@ public class MainActivity extends Activity {
     private Estimator estimator;
     private Controller controller;
 
+    private double omega_dotCurrent = 0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -47,7 +51,7 @@ public class MainActivity extends Activity {
         estimator = new Estimator((SensorManager) this.getSystemService(Context.SENSOR_SERVICE), estimatorListener);
         controller = new Controller(controllerListener);
 
-        noise = new PulseGenerator();
+        noise = new PulseGenerator(pulseGenListener);
         noiseThread = new Thread(noise);
 
         cameraView = (JavaCameraView) findViewById(R.id.java_surface_view);
@@ -132,9 +136,29 @@ public class MainActivity extends Activity {
 
     private Controller.ControllerListener controllerListener = new Controller.ControllerListener() {
 
+        private long lastTime = elapsedRealtimeNanos();
+        private double OMEGA_MAX = 2*Math.PI; //rad/s
+        private double omega = 0;
+
         @Override
-        public void onNewCommand(double omega) {
-//            noise.setPulsePercent();
+        public void onNewCommand(double omega_dot) {
+
+            omega_dotCurrent = omega_dot;
+
+            //integrate
+            long time = elapsedRealtimeNanos();
+            double deltaT = (time - lastTime) / 1e9;
+            lastTime = time;
+            omega += omega_dot*deltaT;
+
+            //saturate
+            if(omega > OMEGA_MAX)
+                omega = OMEGA_MAX;
+            if(omega < -OMEGA_MAX)
+                omega = -OMEGA_MAX;
+
+            noise.setPulsePercent(0, (int)(50 + 50 * omega/OMEGA_MAX));
+            noise.setPulsePercent(2, (int)(50 + 50 * omega/OMEGA_MAX));
         }
     };
 
@@ -142,7 +166,16 @@ public class MainActivity extends Activity {
 
         @Override
         public void onNewState(Mat state) {
-//            controller.calculateCommand(state);
+            controller.calculateCommand(state);
+        }
+    };
+
+    private PulseGenerator.PulseGenListener pulseGenListener = new PulseGenerator.PulseGenListener() {
+
+        @Override
+        public void onCommandUsed() {
+            // send the latest omega to the estimator
+            estimator.onInputChanged((float)omega_dotCurrent);
         }
     };
 }
