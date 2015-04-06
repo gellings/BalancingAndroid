@@ -120,11 +120,11 @@ public class MainActivity extends Activity {
         }
     }
 
-    ImageProcessor.ImageProcessorListener imageProcessorListener = new ImageProcessor.ImageProcessorListener() {
+    private ImageProcessor.ImageProcessorListener imageProcessorListener = new ImageProcessor.ImageProcessorListener() {
         @Override
         public void onNewFlow(double flow) {
             if (estimator != null) {
-                Log.d(TAG, "Flow = " + flow + " pixels/s");
+                Log.i(TAG, "Flow = " + flow + " pixels/s");
                 estimator.onFlowChanged(flow);
             }
         }
