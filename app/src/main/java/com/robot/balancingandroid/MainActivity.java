@@ -10,6 +10,7 @@ import android.view.Menu;
 
 import org.opencv.android.JavaCameraView;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.core.Mat;
 import org.opencv.highgui.Highgui;
 
 public class MainActivity extends Activity {
@@ -27,10 +28,11 @@ public class MainActivity extends Activity {
     private JavaCameraView cameraView;
     private ImageProcessor imageProcessor;
 
-    PulseGenerator noise;
-    Thread noiseThread;
+    private PulseGenerator noise;
+    private Thread noiseThread;
 
-    Estimator estimator;
+    private Estimator estimator;
+    private Controller controller;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +44,8 @@ public class MainActivity extends Activity {
         imageProcessor = new ImageProcessor();
         imageProcessor.registerListener(imageProcessorListener);
 
-        estimator = new Estimator((SensorManager) this.getSystemService(Context.SENSOR_SERVICE));
+        estimator = new Estimator((SensorManager) this.getSystemService(Context.SENSOR_SERVICE), estimatorListener);
+        controller = new Controller(controllerListener);
 
         noise = new PulseGenerator();
         noiseThread = new Thread(noise);
@@ -121,8 +124,24 @@ public class MainActivity extends Activity {
         @Override
         public void onNewFlow(double flow) {
             if (estimator != null) {
-//            estimator.onFlowChanged(flow);
+//                estimator.onFlowChanged(flow);
             }
+        }
+    };
+
+    private Controller.ControllerListener controllerListener = new Controller.ControllerListener() {
+
+        @Override
+        public void onNewCommand(double omega) {
+//            noise.setPulsePercent();
+        }
+    };
+
+    private Estimator.EstimatorListener estimatorListener = new Estimator.EstimatorListener() {
+
+        @Override
+        public void onNewState(Mat state) {
+//            controller.calculateCommand(state);
         }
     };
 }

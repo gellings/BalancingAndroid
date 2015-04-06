@@ -17,6 +17,11 @@ import static android.os.SystemClock.*;
  */
 public class Estimator
 {
+    public interface EstimatorListener {
+        public void onNewState(Mat state);
+    }
+
+    private EstimatorListener estimatorListener;
     private SensorManager sensorManager;
 
     private Sensor gyro = null;
@@ -62,9 +67,10 @@ public class Estimator
 
     private long lastTime;
 
-    public Estimator(SensorManager sm) {
+    public Estimator(SensorManager sm, EstimatorListener el) {
 
         sensorManager = sm;
+        estimatorListener = el;
 
         state = Mat.zeros(3, 1, CvType.CV_32FC1);
 
@@ -189,6 +195,8 @@ public class Estimator
         Core.add(state, deltaState, state);
 
         L = Mat.zeros(3, 3, CvType.CV_32FC1);
+
+        estimatorListener.onNewState(state);
     }
 
     public void onFlowChanged(double flow) {
