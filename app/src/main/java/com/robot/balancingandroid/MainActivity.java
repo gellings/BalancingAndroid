@@ -124,7 +124,8 @@ public class MainActivity extends Activity {
         @Override
         public void onNewFlow(double flow) {
             if (estimator != null) {
-//                estimator.onFlowChanged(flow);
+                Log.d(TAG, "Flow = " + flow + " pixels/s");
+                estimator.onFlowChanged(flow);
             }
         }
     };

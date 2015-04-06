@@ -1,5 +1,6 @@
 package com.robot.balancingandroid;
 
+import android.os.SystemClock;
 import android.util.Log;
 
 import org.opencv.android.CameraBridgeViewBase;
@@ -52,7 +53,9 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
     static final double minDistance = 2.0;
     boolean initialized;
 
-    static final Rect roi = new Rect(100, 100, 400, 400);
+    static final Rect roi = new Rect(60, 20, 200, 200);
+
+    long prevTime;
 
     ImageProcessor() {
         listeners = new ArrayList<>();
@@ -71,19 +74,30 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+
+        long time = SystemClock.elapsedRealtime();
         Mat frame = inputFrame.gray();
+
+        double dt = ((double)(time - prevTime)) / 1e3;
+        prevTime = time;
 
         if (!initialized)
         {
             frame.copyTo(prevFrame);
             initialized = true;
+            return frame;
         }
 
         Mat display = new Mat();
         Imgproc.cvtColor(prevFrame, display, Imgproc.COLOR_GRAY2BGR);
+        Core.rectangle(display, new Point(roi.x, roi.y), new Point(roi.x + roi.width, roi.y + roi.height), new Scalar(255,255,255));
+
+        Mat frameRoi = new Mat(frame, roi);
+        Mat prevFrameRoi = new Mat(prevFrame, roi);
+        Mat displayRoi = new Mat(display, roi);
 
         MatOfPoint features = new MatOfPoint();
-        Imgproc.goodFeaturesToTrack(prevFrame, features, maxFeatures, qualityLevel, minDistance);
+        Imgproc.goodFeaturesToTrack(prevFrameRoi, features, maxFeatures, qualityLevel, minDistance);
         Point featuresArray[] = features.toArray();
 
         if (featuresArray.length > 0) {
@@ -95,23 +109,31 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
             MatOfByte status = new MatOfByte();
             MatOfFloat err = new MatOfFloat();
 
-            Video.calcOpticalFlowPyrLK(prevFrame, frame, prevPts, nextPts, status, err);
+            Video.calcOpticalFlowPyrLK(prevFrameRoi, frameRoi, prevPts, nextPts, status, err);
 
             Point prevPtsArray[] = prevPts.toArray();
             Point nextPtsArray[] = nextPts.toArray();
             byte statusArray[] = status.toArray();
 
+            int flowCount = 0;
+            double flowSum = 0.0;
             for (int i = 0; i < prevPtsArray.length; i++) {
                 if (statusArray[i] != 0) {
-                    Core.circle(display, prevPtsArray[i], 5, new Scalar(0, 255, 0));
-                    Core.line(display, prevPtsArray[i], nextPtsArray[i], new Scalar(0, 0, 255));
+                    Core.circle(displayRoi, prevPtsArray[i], 5, new Scalar(0, 255, 0));
+                    Core.line(displayRoi, prevPtsArray[i], nextPtsArray[i], new Scalar(0, 0, 255));
+
+                    flowCount++;
+                    flowSum += nextPtsArray[i].x - prevPtsArray[i].x;
+
                 } else {
-                    Core.circle(display, prevPtsArray[i], 5, new Scalar(255, 0, 0));
+                    Core.circle(displayRoi, prevPtsArray[i], 5, new Scalar(255, 0, 0));
                 }
             }
 
+            double flow = (flowSum / flowCount) / dt;
+
             for (ImageProcessorListener listener : listeners) {
-                listener.onNewFlow(0.0);
+                listener.onNewFlow(flow);
             }
         } else {
             Log.e(TAG, "No points found!");
