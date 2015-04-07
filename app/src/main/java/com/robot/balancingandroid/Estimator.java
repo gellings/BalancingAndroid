@@ -181,14 +181,14 @@ public class Estimator
                 thetaMes = alphaAccelLPF*thetaMes + (1 - alphaAccelLPF)*rawThetaMes;
                 newThetaMes = true;
 
-                StringBuilder sb = new StringBuilder();
-                sb.append(SystemClock.elapsedRealtime()).append(", ").append(thetaMes).append(", ").append(thetaDotMes).append(", ").append(flowMes).append("\n");
-                try {
-                    outputStream.write(sb.toString().getBytes());
-                } catch (IOException e) {
-                    Log.e(TAG, "could not write");
-                    e.printStackTrace();
-                }
+//                StringBuilder sb = new StringBuilder();
+//                sb.append(SystemClock.elapsedRealtime()).append(", ").append(thetaMes).append(", ").append(thetaDotMes).append(", ").append(flowMes).append("\n");
+//                try {
+//                    outputStream.write(sb.toString().getBytes());
+//                } catch (IOException e) {
+//                    Log.e(TAG, "could not write");
+//                    e.printStackTrace();
+//                }
 
                 //updateEstimate();
             }
@@ -261,6 +261,15 @@ public class Estimator
     public void onFlowChanged(double flow) {
         flowMes = FLOW_PIXELS_TO_METERS * flow;
         newFlowMes = true;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(SystemClock.elapsedRealtime()).append(", ").append(thetaMes).append(", ").append(thetaDotMes).append(", ").append(flowMes).append("\n");
+        try {
+            outputStream.write(sb.toString().getBytes());
+        } catch (IOException e) {
+            Log.e(TAG, "could not write");
+            e.printStackTrace();
+        }
     }
 
     public Mat getState() {
