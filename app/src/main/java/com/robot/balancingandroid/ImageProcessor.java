@@ -139,7 +139,7 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
     private OpticalFlowTask opticalFlowTask;
     private boolean initialized;
 
-    static final Rect roi = new Rect(60, 20, 200, 200);
+    private Rect roi = new Rect(60, 20, 200, 200);
 
     ImageProcessor() {
         listeners = new ArrayList<>();
@@ -182,5 +182,12 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
         Mat display = inputFrame.rgba();
         Core.rectangle(display, new Point(roi.x, roi.y), new Point(roi.x + roi.width, roi.y + roi.height), new Scalar(255,255,255));
         return display;
+    }
+
+    public void setRoi(Rect roi) {
+        if (roi != null) {
+            this.roi = roi;
+            initialized = false;
+        }
     }
 }

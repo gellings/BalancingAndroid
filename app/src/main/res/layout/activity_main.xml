@@ -1,18 +1,114 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:opencv="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context=".MainActivity"
     android:keepScreenOn="true">
-
-    <org.opencv.android.JavaCameraView
+    
+    <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:id="@+id/java_surface_view"
-        opencv:show_fps="true"
-        opencv:camera_id="any"/>
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-</FrameLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ROI x:"/>
+                <EditText
+                    android:layout_width="@dimen/number_input_width"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:id="@+id/roi_x"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ROI y:"/>
+                <EditText
+                    android:layout_width="@dimen/number_input_width"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:id="@+id/roi_y"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ROI width:"/>
+                <EditText
+                    android:layout_width="@dimen/number_input_width"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:id="@+id/roi_width"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ROI height:"/>
+                <EditText
+                    android:layout_width="@dimen/number_input_width"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:id="@+id/roi_height"/>
+            </LinearLayout>
+
+        </LinearLayout>
+        
+    </LinearLayout>
+
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/update_roi"
+        android:text="Update ROI"/>
+
+    <FrameLayout
+        android:layout_width="fill_parent"
+        android:layout_height="240dp"
+        android:layout_marginTop="@dimen/activity_vertical_margin">
+        <org.opencv.android.JavaCameraView
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/java_surface_view"
+            opencv:show_fps="true"
+            opencv:camera_id="any"/>
+    </FrameLayout>
+
+</LinearLayout>
