@@ -4,6 +4,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -48,6 +49,8 @@ public class Estimator
     private boolean newFlowMes = false;
     private double FLOW_PIXELS_TO_METERS = .011/200;
 
+    private boolean updateDone = true;
+
     //matricies
     public Mat state; //theta, theta_dot, omega (rad, rad/s, rad/s)
     private Mat A;
@@ -59,12 +62,12 @@ public class Estimator
     //constants
     private float g = 9.81f;// m/s2
 
-    private float m1 = 2f;// kg
-    private float l1 = 1.3f;// m
+    private float m1 = 0.1219f;// kg
+    private float l1 = .04f;// m
 
-    private float m2 = 2f;// kg
-    private float l2 = 1.3f;// m
-    private float I2 = 7f;
+    private float m2 = 18.6f*0.0283495f - m1;// kg
+    private float l2 = 0.3048f;// m
+    private float I2 = m2*(4*l2*l2)/12;
 
     private long lastTime;
 
@@ -132,7 +135,11 @@ public class Estimator
                 thetaMes = alphaAccelLPF*thetaMes + (1 - alphaAccelLPF)*rawThetaMes;
                 newThetaMes = true;
 
-                updateEstimate();
+                if(updateDone) {
+                    updateEstimate();
+                } else {
+                    Log.i("BalancingAndroid", "skipped an update");
+                }
             }
         }
 
@@ -143,6 +150,8 @@ public class Estimator
     };
 
     public void updateEstimate() {
+
+        updateDone = false;
 
         Mat state_dot = Mat.zeros(3,1, CvType.CV_32FC1);
         Mat firstTerm = Mat.zeros(3,1, CvType.CV_32FC1);
@@ -157,21 +166,25 @@ public class Estimator
         float val;
         if(newThetaMes)
         {
-            val = .1f; //todo
+            val = 0.9738f;
             L.put(0,0,val);
+//            val = 1.0722f;
+//            L.put(1,0,val);
             y.put(0,0,thetaMes);
             newThetaMes = false;
         }
         if(newThetaDotMes)
         {
-            val = .1f;
+            val = 0.9801f;
             L.put(1,1,val);
+//            val = 40.6080f;
+//            L.put(0,1,val);
             y.put(1,0,thetaDotMes);
             newThetaDotMes = false;
         }
         if(newFlowMes)
         {
-            val = .1f;
+            val = 15.2815f;
             L.put(2,2,val);
             y.put(2,0,flowMes);
             newFlowMes = false;
@@ -197,12 +210,21 @@ public class Estimator
 
         L = Mat.zeros(3, 3, CvType.CV_32FC1);
 
+        float[] n = new float[3];
+        state.get(0,0,n);
+        //Log.i("BalancingAndroid", "theta = " + n[0] + " rad,  thetadot = " + n[1] + " rad/s,  omega = " + n[2] + " rad/s");
+
         estimatorListener.onNewState(state);
+
+        updateDone = true;
     }
 
     public void onFlowChanged(double flow) {
-        flowMes = FLOW_PIXELS_TO_METERS * flow;
-        newFlowMes = true;
+        if(flow != Double.NaN);
+        {
+            flowMes = FLOW_PIXELS_TO_METERS * flow;
+            newFlowMes = true;
+        }
     }
 
     public Mat getState() {

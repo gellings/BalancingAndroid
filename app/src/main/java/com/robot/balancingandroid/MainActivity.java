@@ -99,7 +99,7 @@ public class MainActivity extends Activity {
         noise.setPulsePercent(50, 0);
         noise.setPulsePercent(50, 2);
 
-        if(noise.isPlaying()) //change this to make the noise work
+        if(!noise.isPlaying())
             noise.togglePlayback();
 
         super.onStart();
@@ -128,7 +128,7 @@ public class MainActivity extends Activity {
         @Override
         public void onNewFlow(double flow) {
             if (estimator != null) {
-                Log.i(TAG, "Flow = " + flow + " pixels/s");
+                //Log.i(TAG, "Flow = " + flow + " pixels/s");
                 estimator.onFlowChanged(flow);
             }
         }
@@ -157,8 +157,10 @@ public class MainActivity extends Activity {
             if(omega < -OMEGA_MAX)
                 omega = -OMEGA_MAX;
 
-            noise.setPulsePercent(0, (int)(50 + 50 * omega/OMEGA_MAX));
-            noise.setPulsePercent(2, (int)(50 + 50 * omega/OMEGA_MAX));
+            Log.i("BalancingAndroid", "command " + omega + " rad/s");
+
+            noise.setPulsePercent(50 - (int)( 50 * omega/OMEGA_MAX), 0);//(int)(50 - 50 * omega/OMEGA_MAX));
+            noise.setPulsePercent(43 + (int)( 50 * omega/OMEGA_MAX), 2);//(int)(31 + 50 * omega/OMEGA_MAX));
         }
     };
 
