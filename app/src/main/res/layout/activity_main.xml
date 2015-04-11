@@ -111,4 +111,10 @@
             opencv:camera_id="any"/>
     </FrameLayout>
 
+    <ImageView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:id="@+id/flow_view"/>
+
 </LinearLayout>

@@ -1,10 +1,13 @@
 package com.robot.balancingandroid;
 
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.SystemClock;
 import android.util.Log;
+import android.widget.ImageView;
 
 import org.opencv.android.CameraBridgeViewBase;
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
@@ -47,10 +50,13 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
 
     private static final String TAG = "ImageProcessor";
 
+    private ImageView flowView;
+
     private class OpticalFlowTask extends AsyncTask<Mat, Integer, Double> {
 
         private Mat prevFrame;
         private double dt;
+        private Mat display;
 
         private static final int maxFeatures = 300;
         private static final double qualityLevel = 0.1;
@@ -72,7 +78,7 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
         @Override
         protected Double doInBackground(Mat... images) {
 
-            Mat display = new Mat();
+            display = new Mat();
             Imgproc.cvtColor(prevFrame, display, Imgproc.COLOR_GRAY2BGR);
             Core.rectangle(display, new Point(roi.x, roi.y), new Point(roi.x + roi.width, roi.y + roi.height), new Scalar(255,255,255));
 
@@ -129,7 +135,12 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
                     listener.onNewFlow(result);
                 }
             }
-            // set image in a new view?
+
+            if (flowView != null && display != null) {
+                Bitmap bm = Bitmap.createBitmap(display.cols(), display.rows(), Bitmap.Config.ARGB_8888);
+                Utils.matToBitmap(display, bm);
+                flowView.setImageBitmap(bm);
+            }
         }
     }
 
@@ -189,5 +200,9 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
             this.roi = roi;
             initialized = false;
         }
+    }
+
+    public void setFlowView(ImageView view) {
+        flowView = view;
     }
 }

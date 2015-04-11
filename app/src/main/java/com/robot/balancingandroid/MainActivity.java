@@ -11,6 +11,7 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,10 +42,12 @@ public class MainActivity extends Activity {
     private int imageHeight;
     private Rect roi;
 
-    EditText roiX;
-    EditText roiY;
-    EditText roiWidth;
-    EditText roiHeight;
+    private EditText roiX;
+    private EditText roiY;
+    private EditText roiWidth;
+    private EditText roiHeight;
+
+    private ImageView flowView;
 
     private PulseGenerator noise;
     private Thread noiseThread;
@@ -60,9 +63,6 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
-        imageProcessor = new ImageProcessor();
-        imageProcessor.registerListener(imageProcessorListener);
 
         estimator = new Estimator((SensorManager) this.getSystemService(Context.SENSOR_SERVICE), estimatorListener);
         controller = new Controller(controllerListener);
@@ -83,6 +83,13 @@ public class MainActivity extends Activity {
         roiY.setText(Integer.toString(roi.y));
         roiWidth.setText(Integer.toString(roi.width));
         roiHeight.setText(Integer.toString(roi.height));
+
+        flowView = (ImageView) findViewById(R.id.flow_view);
+
+        imageProcessor = new ImageProcessor();
+        imageProcessor.setRoi(roi);
+        imageProcessor.setFlowView(flowView);
+        imageProcessor.registerListener(imageProcessorListener);
 
         cameraView = (JavaCameraView) findViewById(R.id.java_surface_view);
         cameraView.setCameraIndex(JavaCameraView.CAMERA_ID_FRONT);
