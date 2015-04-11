@@ -4,5 +4,10 @@
     <string name="app_name">Balancing Android</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="roi_x">ROI x:</string>
+    <string name="roi_y">ROI y:</string>
+    <string name="roi_width">ROI width:</string>
+    <string name="roi_height">ROI height:</string>
+    <string name="update_roi">Update ROI</string>
 
 </resources>
