@@ -91,7 +91,7 @@ public class MainActivity extends Activity {
         imageProcessor.setFlowView(flowView);
         imageProcessor.registerListener(imageProcessorListener);
 
-        cameraView = (JavaCameraView) findViewById(R.id.java_surface_view);
+        cameraView = (JavaCameraView) findViewById(R.id.main_image);
         cameraView.setCameraIndex(JavaCameraView.CAMERA_ID_FRONT);
         cameraView.SetCaptureFormat(Highgui.CV_CAP_ANDROID_GREY_FRAME);
         cameraView.setMaxFrameSize(imageWidth, imageHeight);
