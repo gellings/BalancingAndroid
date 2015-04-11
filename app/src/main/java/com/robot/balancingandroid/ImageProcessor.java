@@ -17,6 +17,7 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.features2d.Features2d;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.video.Video;
 
@@ -30,6 +31,7 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
 
     public interface ImageProcessorListener {
         public void onNewFlow(double flow);
+        public void onNewAngle(double angle);
     }
 
     private List<ImageProcessorListener> listeners;
@@ -51,6 +53,7 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
     private static final String TAG = "ImageProcessor";
 
     private ImageView flowView;
+    private ImageView linesView;
 
     private class OpticalFlowTask extends AsyncTask<Mat, Integer, Double> {
 
@@ -144,6 +147,66 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
         }
     }
 
+    private class LineDetectionTask extends AsyncTask<Mat, Integer, Double> {
+
+        private Mat display;
+
+        @Override
+        protected Double doInBackground(Mat... images) {
+
+            Mat frameRoi = new Mat();
+            Imgproc.Canny(new Mat(images[0], roi), frameRoi, 10, 100);
+
+            Mat lines = new Mat();
+            Imgproc.HoughLinesP(frameRoi, lines, 1, 0.0175, 100, 100, 30);
+
+            display = new Mat();
+            Imgproc.cvtColor(frameRoi, display, Imgproc.COLOR_GRAY2BGR);
+
+            double angleSum = 0;
+            for (int i = 0; i < lines.cols(); i++) {
+                int buff[] = new int[4];
+                lines.col(i).get(0, 0, buff);
+
+                int x1 = buff[0];
+                int y1 = buff[1];
+                int x2 = buff[2];
+                int y2 = buff[3];
+
+                Core.line(display, new Point(x1, y1), new Point(x2, y2), new Scalar(255,0,0), 2);
+
+                double thisAngle = Core.fastAtan2(y2-y1, x2-x1);
+                if (thisAngle > 180) {
+                    thisAngle -= 360;
+                }
+                if (thisAngle > -45 && thisAngle < 45) {
+                    angleSum += thisAngle;
+                }
+            }
+
+            if (lines.cols() > 1) {
+                return angleSum / lines.cols();
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Double result) {
+            if (result != null) {
+                for (ImageProcessorListener listener : listeners) {
+                    listener.onNewAngle(result);
+                }
+            }
+
+            if (linesView != null && display != null) {
+                Bitmap bm = Bitmap.createBitmap(display.cols(), display.rows(), Bitmap.Config.ARGB_8888);
+                Utils.matToBitmap(display, bm);
+                linesView.setImageBitmap(bm);
+            }
+        }
+    }
+
     // optical flow stuff
     private Mat prevFlowFrame;
     private long prevFlowTime;
@@ -151,6 +214,9 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
     private boolean initialized;
 
     private Rect roi = new Rect(60, 20, 200, 200);
+
+    // line detectino stuff
+    private LineDetectionTask lineDetectionTask;
 
     ImageProcessor() {
         listeners = new ArrayList<>();
@@ -163,9 +229,7 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
     }
 
     @Override
-    public void onCameraViewStopped() {
-
-    }
+    public void onCameraViewStopped() {}
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
@@ -190,6 +254,12 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
             inputFrame.gray().copyTo(prevFlowFrame);
         }
 
+        if (lineDetectionTask == null || lineDetectionTask.getStatus() == LineDetectionTask.Status.FINISHED) {
+
+            lineDetectionTask = new LineDetectionTask();
+            lineDetectionTask.execute(inputFrame.gray());
+        }
+
         Mat display = inputFrame.rgba();
         Core.rectangle(display, new Point(roi.x, roi.y), new Point(roi.x + roi.width, roi.y + roi.height), new Scalar(255,255,255));
         return display;
@@ -204,5 +274,9 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
 
     public void setFlowView(ImageView view) {
         flowView = view;
+    }
+
+    public void setLinesView(ImageView view) {
+        linesView = view;
     }
 }

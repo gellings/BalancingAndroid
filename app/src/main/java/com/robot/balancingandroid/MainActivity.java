@@ -6,14 +6,11 @@ import android.content.pm.ActivityInfo;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import org.opencv.android.JavaCameraView;
 import org.opencv.android.OpenCVLoader;
@@ -46,8 +43,6 @@ public class MainActivity extends Activity {
     private EditText roiY;
     private EditText roiWidth;
     private EditText roiHeight;
-
-    private ImageView flowView;
 
     private PulseGenerator noise;
     private Thread noiseThread;
@@ -84,11 +79,10 @@ public class MainActivity extends Activity {
         roiWidth.setText(Integer.toString(roi.width));
         roiHeight.setText(Integer.toString(roi.height));
 
-        flowView = (ImageView) findViewById(R.id.flow_view);
-
         imageProcessor = new ImageProcessor();
         imageProcessor.setRoi(roi);
-        imageProcessor.setFlowView(flowView);
+        imageProcessor.setFlowView((ImageView) findViewById(R.id.flow_view));
+        imageProcessor.setLinesView((ImageView) findViewById(R.id.lines_view));
         imageProcessor.registerListener(imageProcessorListener);
 
         cameraView = (JavaCameraView) findViewById(R.id.main_image);
@@ -201,6 +195,11 @@ public class MainActivity extends Activity {
                 //Log.i(TAG, "Flow = " + flow + " pixels/s");
                 estimator.onFlowChanged(flow);
             }
+        }
+
+        @Override
+        public void onNewAngle(double angle) {
+            Log.i(TAG, "Angle = " + angle);
         }
     };
 
