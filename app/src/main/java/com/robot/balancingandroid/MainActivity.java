@@ -73,7 +73,7 @@ public class MainActivity extends Activity {
 
         imageWidth = 320;
         imageHeight = 240;
-        roi = new Rect(60, 20, 200, 200);
+        roi = new Rect(0, 60, 150, 180);
 
         roiX = (EditText)findViewById(R.id.roi_x);
         roiY = (EditText)findViewById(R.id.roi_y);
@@ -233,8 +233,17 @@ public class MainActivity extends Activity {
             if(omega < -OMEGA_MAX)
                 omega = -OMEGA_MAX;
 
-            noise.setPulsePercent(50 - headingCommand - (int)( 50 * omega/OMEGA_MAX), 0);
-            noise.setPulsePercent(43 + headingCommand + (int)( 50 * omega/OMEGA_MAX), 2);
+            int command0 = 50 - ((int)( 50 * omega/OMEGA_MAX) + headingCommand);
+            int command2 = 43 + ((int)( 50 * omega/OMEGA_MAX) - headingCommand);
+
+            if (command0 < 0) { command0 = 0; }
+            if (command0 > 100) { command0 = 100; }
+
+            if (command2 < 0) { command2 = 0; }
+            if (command2 > 100) { command2 = 100; }
+
+            noise.setPulsePercent(command0, 0);
+            noise.setPulsePercent(command2, 2);
         }
     };
 
