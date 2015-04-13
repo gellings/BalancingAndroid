@@ -216,6 +216,8 @@ public class MainActivity extends Activity {
         private double OMEGA_MAX = 2*Math.PI; //rad/s
         private double omega = 0;
 
+        int update_counter = 0;
+
         @Override
         public void onNewCommand(double omega_dot) {
 
@@ -242,8 +244,14 @@ public class MainActivity extends Activity {
             if (command2 < 0) { command2 = 0; }
             if (command2 > 100) { command2 = 100; }
 
-            noise.setPulsePercent(command0, 0);
-            noise.setPulsePercent(command2, 2);
+            if(update_counter == 3) {
+                noise.setPulsePercent(command0, 0);
+                noise.setPulsePercent(command2, 2);
+                update_counter = 0;
+            }
+            else {
+                update_counter++;
+            }
         }
     };
 
@@ -260,6 +268,7 @@ public class MainActivity extends Activity {
 
         @Override
         public void onNewState(Mat state) {
+
             controller.calculateCommand(state);
         }
     };
