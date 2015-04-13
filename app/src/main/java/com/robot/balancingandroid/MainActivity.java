@@ -207,7 +207,7 @@ public class MainActivity extends Activity {
     private Controller.ControllerListener controllerListener = new Controller.ControllerListener() {
 
         private long lastTime = elapsedRealtimeNanos();
-        private double OMEGA_MAX = 2*Math.PI; //rad/s
+        private double OMEGA_MAX = 8.43; //rad/s
         private double omega = 0;
 
         int update_counter = 0;
@@ -229,9 +229,9 @@ public class MainActivity extends Activity {
             if(omega < -OMEGA_MAX)
                 omega = -OMEGA_MAX;
 
-            if(update_counter == 3) {
-                noise.setPulsePercent(50 - (int)( 50 * omega/OMEGA_MAX), 0);
-                noise.setPulsePercent(43 + (int)( 50 * omega/OMEGA_MAX), 2);
+            if(update_counter == 2) {
+                noise.setPulsePercent(50 + (int)( 50 * omega/OMEGA_MAX), 0);
+                noise.setPulsePercent(50 - (int)( 50 * omega/OMEGA_MAX), 2);
                 update_counter = 0;
             }
             else {

@@ -1,15 +1,26 @@
 package com.robot.balancingandroid;
 
+import android.app.Activity;
+import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Environment;
+import android.os.SystemClock;
 import android.util.Log;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 
 import static android.os.SystemClock.*;
 
@@ -18,6 +29,9 @@ import static android.os.SystemClock.*;
  */
 public class Estimator
 {
+
+    private static final String TAG = "BalancingAndroid";
+
     public interface EstimatorListener {
         public void onNewState(Mat state);
     }
@@ -62,14 +76,16 @@ public class Estimator
     //constants
     private float g = 9.81f;// m/s2
 
-    private float m1 = 0.1219f;// kg
+    private float m1 = 0.1162f;// kg
     private float l1 = .04f;// m
 
-    private float m2 = 21.6f*0.0283495f - m1;// kg
-    private float l2 = 0.3048f;// m
-    private float I2 = m2*(4*l2*l2)/12;
+    private float m2 = 0.5647f;// kg
+    private float l2 = 0.28f;// m
+    private float I2 = 0.0481f;
 
     private long lastTime;
+
+    private FileOutputStream outputStream;
 
     public Estimator(SensorManager sm, EstimatorListener el) {
 
@@ -91,7 +107,7 @@ public class Estimator
         B.put(2,0,val);
 
         C = Mat.eye(3,3,CvType.CV_32FC1);
-        val = l2;
+        val = l1;
         C.put(2,2,val);
 
         L = Mat.zeros(3, 3, CvType.CV_32FC1);
@@ -103,6 +119,31 @@ public class Estimator
 
         if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null)
             accel = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
+        String filename = "myFile.txt";
+
+        if( Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()))
+        {
+            File myDir = new File(Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOWNLOADS), "myFolder");
+            //Log.i(TAG, myDir.getPath().toString());
+            if (!myDir.mkdirs()) {
+                Log.e(TAG, "Directory not created");
+            }
+            File file = new File(myDir.getPath(), filename);
+
+            if(file.exists()) file.delete();
+
+            try {
+                outputStream = new FileOutputStream(file);
+                //outputStream.write(test.getBytes());
+                //outputStream.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else
+            Log.e(TAG, "media bocked");
     }
 
     public void registerListeners() {
@@ -116,6 +157,13 @@ public class Estimator
     }
 
     public void unregisterListeners() {
+
+        try {
+            outputStream.close();
+        } catch (IOException e) {
+            Log.e(TAG, "could not close");
+            //e.printStackTrace();
+        }
         sensorManager.unregisterListener(sensorListener);
     }
 
@@ -134,6 +182,15 @@ public class Estimator
                 rawThetaMes = Math.atan2(-event.values[2],event.values[1]);
                 thetaMes = alphaAccelLPF*thetaMes + (1 - alphaAccelLPF)*rawThetaMes;
                 newThetaMes = true;
+
+                StringBuilder sb = new StringBuilder();
+                sb.append(SystemClock.elapsedRealtime()).append(", ").append(thetaMes).append(", ").append(thetaDotMes).append(", ").append(flowMes).append("\n");
+                try {
+                    outputStream.write(sb.toString().getBytes());
+                } catch (IOException e) {
+                    Log.e(TAG, "could not write");
+                    e.printStackTrace();
+                }
 
                 if(updateDone) {
                     updateEstimate();
@@ -166,25 +223,33 @@ public class Estimator
         float val;
         if(newThetaMes)
         {
-            val = 0.9759f;
+            val = 2.6635f;
             L.put(0,0,val);
-//            val = 1.0722f;
-//            L.put(1,0,val);
+            val = 12.1742f;
+            L.put(1,0,val);
+            val = 0.0510f;
+            L.put(2,0,val);
             y.put(0,0,thetaMes);
             newThetaMes = false;
         }
         if(newThetaDotMes)
         {
-            val = 0.9821f;
+            val = 1.4172f;
+            L.put(0,1,val);
+            val = 9.8864f;
             L.put(1,1,val);
-//            val = 40.6080f;
-//            L.put(0,1,val);
+            val = -0.3343f;
+            L.put(2,1,val);
             y.put(1,0,thetaDotMes);
             newThetaDotMes = false;
         }
         if(newFlowMes)
         {
-            val = 17.0419f;
+            val = 0.1985f;
+            L.put(0,2,val);
+            val = -11.1802f;
+            L.put(1,2,val);
+            val = 521.0064f;
             L.put(2,2,val);
             y.put(2,0,flowMes);
             newFlowMes = false;
@@ -220,6 +285,16 @@ public class Estimator
     }
 
     public void onFlowChanged(double flow) {
+
+//        StringBuilder sb = new StringBuilder();
+//        sb.append(SystemClock.elapsedRealtime()).append(", ").append(thetaMes).append(", ").append(thetaDotMes).append(", ").append(flowMes).append("\n");
+//        try {
+//            outputStream.write(sb.toString().getBytes());
+//        } catch (IOException e) {
+//            Log.e(TAG, "could not write");
+//            e.printStackTrace();
+//        }
+
         if(flow != Double.NaN);
         {
             flowMes = FLOW_PIXELS_TO_METERS * flow;
