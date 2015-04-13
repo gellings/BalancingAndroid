@@ -49,8 +49,11 @@ public class MainActivity extends Activity {
 
     private Estimator estimator;
     private Controller controller;
+    private HeadingController headingController;
 
     private double omega_dotCurrent = 0;
+
+    private int headingCommand = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +64,9 @@ public class MainActivity extends Activity {
 
         estimator = new Estimator((SensorManager) this.getSystemService(Context.SENSOR_SERVICE), estimatorListener);
         controller = new Controller(controllerListener);
+
+        headingController = new HeadingController();
+        headingController.registerListener(headingControllerListener);
 
         noise = new PulseGenerator(pulseGenListener);
         noiseThread = new Thread(noise);
@@ -199,6 +205,7 @@ public class MainActivity extends Activity {
 
         @Override
         public void onNewAngle(double angle) {
+            headingController.calculateCommand(angle);
             Log.i(TAG, "Angle = " + angle);
         }
     };
@@ -216,7 +223,7 @@ public class MainActivity extends Activity {
 
             //integrate
             long time = elapsedRealtimeNanos();
-            double deltaT = (time - lastTime) / 1e9;
+            double deltaT = ((double)(time - lastTime)) / 1e9;
             lastTime = time;
             omega += omega_dot*deltaT;
 
@@ -226,8 +233,17 @@ public class MainActivity extends Activity {
             if(omega < -OMEGA_MAX)
                 omega = -OMEGA_MAX;
 
-            noise.setPulsePercent(50 - (int)( 50 * omega/OMEGA_MAX), 0);
-            noise.setPulsePercent(43 + (int)( 50 * omega/OMEGA_MAX), 2);
+            noise.setPulsePercent(50 - headingCommand - (int)( 50 * omega/OMEGA_MAX), 0);
+            noise.setPulsePercent(43 + headingCommand + (int)( 50 * omega/OMEGA_MAX), 2);
+        }
+    };
+
+    private HeadingController.HeadingControllerListener headingControllerListener
+            = new HeadingController.HeadingControllerListener() {
+        @Override
+        public void onNewHeadingCommand(int command) {
+            headingCommand = command;
+            Log.i(TAG, "Heading command: " + command);
         }
     };
 
