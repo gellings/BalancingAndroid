@@ -65,7 +65,7 @@ public class Estimator
     private float m1 = 0.1219f;// kg
     private float l1 = .04f;// m
 
-    private float m2 = 18.6f*0.0283495f - m1;// kg
+    private float m2 = 21.6f*0.0283495f - m1;// kg
     private float l2 = 0.3048f;// m
     private float I2 = m2*(4*l2*l2)/12;
 
@@ -166,7 +166,7 @@ public class Estimator
         float val;
         if(newThetaMes)
         {
-            val = 0.9738f;
+            val = 0.9759f;
             L.put(0,0,val);
 //            val = 1.0722f;
 //            L.put(1,0,val);
@@ -175,7 +175,7 @@ public class Estimator
         }
         if(newThetaDotMes)
         {
-            val = 0.9801f;
+            val = 0.9821f;
             L.put(1,1,val);
 //            val = 40.6080f;
 //            L.put(0,1,val);
@@ -184,7 +184,7 @@ public class Estimator
         }
         if(newFlowMes)
         {
-            val = 15.2815f;
+            val = 17.0419f;
             L.put(2,2,val);
             y.put(2,0,flowMes);
             newFlowMes = false;
