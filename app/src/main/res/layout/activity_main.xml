@@ -1,18 +1,125 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:opencv="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity"
-    android:keepScreenOn="true">
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:keepScreenOn="true"
+    tools:context=".MainActivity">
 
-    <org.opencv.android.JavaCameraView
+    <TextView
+        android:id="@+id/roi_x_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:text="@string/roi_x" />
+
+    <EditText
+        android:id="@+id/roi_x"
+        android:layout_width="@dimen/number_input_width"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/roi_x_label"
+        android:layout_alignBaseline="@id/roi_x_label"
+        android:layout_alignParentTop="true"
+        android:inputType="number" />
+
+    <TextView
+        android:id="@+id/roi_y_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/roi_x"
+        android:layout_alignRight="@id/roi_x_label"
+        android:layout_alignEnd="@id/roi_y_label"
+        android:text="@string/roi_y" />
+
+    <EditText
+        android:id="@+id/roi_y"
+        android:layout_width="@dimen/number_input_width"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/roi_y_label"
+        android:layout_below="@id/roi_x"
+        android:layout_alignBaseline="@id/roi_y_label"
+        android:inputType="number" />
+
+    <TextView
+        android:id="@+id/roi_width_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/roi_x"
+        android:layout_marginLeft="@dimen/spacing_horizontal"
+        android:layout_marginStart="@dimen/spacing_horizontal"
+        android:text="@string/roi_width" />
+
+    <EditText
+        android:id="@+id/roi_width"
+        android:layout_width="@dimen/number_input_width"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/roi_width_label"
+        android:layout_alignBaseline="@id/roi_width_label"
+        android:layout_alignParentTop="true"
+        android:inputType="number" />
+
+    <TextView
+        android:id="@+id/roi_height_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/roi_width"
+        android:layout_toRightOf="@id/roi_y"
+        android:layout_marginLeft="@dimen/spacing_horizontal"
+        android:layout_marginStart="@dimen/spacing_horizontal"
+        android:text="@string/roi_height" />
+
+    <EditText
+        android:id="@+id/roi_height"
+        android:layout_width="@dimen/number_input_width"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/roi_height_label"
+        android:layout_below="@id/roi_width"
+        android:layout_alignBaseline="@id/roi_height_label"
+        android:inputType="number" />
+
+    <Button
+        android:id="@+id/update_roi"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:id="@+id/java_surface_view"
-        opencv:show_fps="true"
-        opencv:camera_id="any"/>
+        android:layout_height="wrap_content"
+        android:layout_below="@id/roi_height"
+        android:layout_alignParentLeft="true"
+        android:text="@string/update_roi"/>
+    
+    <FrameLayout
+        android:id="@+id/main_image_container"
+        android:layout_width="fill_parent"
+        android:layout_height="@dimen/main_image_height"
+        android:layout_below="@id/update_roi"
+        android:layout_marginTop="@dimen/spacing_vertical" >
 
-</FrameLayout>
+        <org.opencv.android.JavaCameraView
+            android:id="@+id/main_image"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            opencv:camera_id="any"
+            opencv:show_fps="true"/>
+
+    </FrameLayout>
+    
+    <ImageView
+        android:id="@+id/flow_view"
+        android:layout_width="@dimen/secondary_image_width"
+        android:layout_height="@dimen/secondary_image_height"
+        android:layout_below="@id/main_image_container"
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="@dimen/spacing_vertical" />
+
+    <ImageView
+        android:id="@+id/lines_view"
+        android:layout_width="@dimen/secondary_image_width"
+        android:layout_height="@dimen/secondary_image_height"
+        android:layout_below="@id/main_image_container"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="@dimen/spacing_vertical" />
+
+</RelativeLayout>

@@ -20,10 +20,13 @@ public class Controller {
     public Controller(ControllerListener contlist) {
         controllerListener = contlist;
 
-        K = Mat.zeros(3, 3, CvType.CV_32FC1);
-        float val = 1;
+        K = Mat.zeros(1, 3, CvType.CV_32FC1);
+        float val = -1325f;
         K.put(0, 0, val);
-        //todo initialize k correctly...
+        val = -262.5f;
+        K.put(0, 1, val);
+        val = -0.1068f;
+        K.put(0, 2, val);
     }
 
     public void calculateCommand(Mat state) {

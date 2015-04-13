@@ -175,6 +175,7 @@ public class PulseGenerator implements Runnable
         generatePCM(pulseWidthArray[2], pulseWidthArray[3], pulseInterval, volume, modulation, rightChannelBuffer, pulseInterval * bufferPulses, 2);
         while (true)
         {
+            Log.d("BalancingAndroid", "noise thread is working!");
             int bufferlength = pulseInterval * bufferPulses * 2;
             if (playing)
             {

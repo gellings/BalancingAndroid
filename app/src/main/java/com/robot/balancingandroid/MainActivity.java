@@ -6,11 +6,19 @@ import android.content.pm.ActivityInfo;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import org.opencv.android.JavaCameraView;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
+import org.opencv.core.Rect;
 import org.opencv.highgui.Highgui;
 
 import static android.os.SystemClock.elapsedRealtimeNanos;
@@ -30,6 +38,17 @@ public class MainActivity extends Activity {
     private JavaCameraView cameraView;
     private ImageProcessor imageProcessor;
 
+    private int imageWidth;
+    private int imageHeight;
+    private Rect roi;
+
+    private EditText roiX;
+    private EditText roiY;
+    private EditText roiWidth;
+    private EditText roiHeight;
+
+    private ImageView flowView;
+
     private PulseGenerator noise;
     private Thread noiseThread;
 
@@ -45,20 +64,71 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        imageProcessor = new ImageProcessor();
-        imageProcessor.registerListener(imageProcessorListener);
-
         estimator = new Estimator((SensorManager) this.getSystemService(Context.SENSOR_SERVICE), estimatorListener);
         controller = new Controller(controllerListener);
 
         noise = new PulseGenerator(pulseGenListener);
         noiseThread = new Thread(noise);
 
-        cameraView = (JavaCameraView) findViewById(R.id.java_surface_view);
+        imageWidth = 320;
+        imageHeight = 240;
+        roi = new Rect(60, 20, 200, 200);
+
+        roiX = (EditText)findViewById(R.id.roi_x);
+        roiY = (EditText)findViewById(R.id.roi_y);
+        roiWidth = (EditText)findViewById(R.id.roi_width);
+        roiHeight = (EditText)findViewById(R.id.roi_height);
+
+        roiX.setText(Integer.toString(roi.x));
+        roiY.setText(Integer.toString(roi.y));
+        roiWidth.setText(Integer.toString(roi.width));
+        roiHeight.setText(Integer.toString(roi.height));
+
+        flowView = (ImageView) findViewById(R.id.flow_view);
+
+        imageProcessor = new ImageProcessor();
+        imageProcessor.setRoi(roi);
+        imageProcessor.setFlowView(flowView);
+        imageProcessor.registerListener(imageProcessorListener);
+
+        cameraView = (JavaCameraView) findViewById(R.id.main_image);
         cameraView.setCameraIndex(JavaCameraView.CAMERA_ID_FRONT);
         cameraView.SetCaptureFormat(Highgui.CV_CAP_ANDROID_GREY_FRAME);
-        cameraView.setMaxFrameSize(320, 240);
+        cameraView.setMaxFrameSize(imageWidth, imageHeight);
         cameraView.setCvCameraViewListener(imageProcessor);
+
+        // initialize values
+        Button updateRoiButton = (Button) findViewById(R.id.update_roi);
+        updateRoiButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                try {
+
+                    int x = Integer.parseInt(roiX.getText().toString());
+                    int y = Integer.parseInt(roiY.getText().toString());
+                    int width = Integer.parseInt(roiWidth.getText().toString());
+                    int height = Integer.parseInt(roiHeight.getText().toString());
+
+                    if (x <= imageWidth && x + width <= imageWidth
+                            && y <= imageHeight && y + height <= imageHeight) {
+                        roi = new Rect(x, y, width, height);
+                        imageProcessor.setRoi(roi);
+                    }
+                    else {
+                        roiX.setText(Integer.toString(roi.x));
+                        roiY.setText(Integer.toString(roi.y));
+                        roiWidth.setText(Integer.toString(roi.width));
+                        roiHeight.setText(Integer.toString(roi.height));
+                    }
+                } catch (Exception e) {
+                    roiX.setText(Integer.toString(roi.x));
+                    roiY.setText(Integer.toString(roi.y));
+                    roiWidth.setText(Integer.toString(roi.width));
+                    roiHeight.setText(Integer.toString(roi.height));
+                }
+            }
+        });
     }
 
 
@@ -99,7 +169,7 @@ public class MainActivity extends Activity {
         noise.setPulsePercent(50, 0);
         noise.setPulsePercent(50, 2);
 
-        if(noise.isPlaying()) //change this to make the noise work
+        if(!noise.isPlaying())
             noise.togglePlayback();
 
         super.onStart();
@@ -128,7 +198,7 @@ public class MainActivity extends Activity {
         @Override
         public void onNewFlow(double flow) {
             if (estimator != null) {
-                Log.i(TAG, "Flow = " + flow + " pixels/s");
+                //Log.i(TAG, "Flow = " + flow + " pixels/s");
                 estimator.onFlowChanged(flow);
             }
         }
@@ -137,8 +207,10 @@ public class MainActivity extends Activity {
     private Controller.ControllerListener controllerListener = new Controller.ControllerListener() {
 
         private long lastTime = elapsedRealtimeNanos();
-        private double OMEGA_MAX = 2*Math.PI; //rad/s
+        private double OMEGA_MAX = 8.43; //rad/s
         private double omega = 0;
+
+        int update_counter = 0;
 
         @Override
         public void onNewCommand(double omega_dot) {
@@ -157,8 +229,14 @@ public class MainActivity extends Activity {
             if(omega < -OMEGA_MAX)
                 omega = -OMEGA_MAX;
 
-            noise.setPulsePercent(0, (int)(50 + 50 * omega/OMEGA_MAX));
-            noise.setPulsePercent(2, (int)(50 + 50 * omega/OMEGA_MAX));
+            if(update_counter == 2) {
+                noise.setPulsePercent(50 + (int)( 50 * omega/OMEGA_MAX), 0);
+                noise.setPulsePercent(50 - (int)( 50 * omega/OMEGA_MAX), 2);
+                update_counter = 0;
+            }
+            else {
+                update_counter++;
+            }
         }
     };
 
@@ -166,6 +244,7 @@ public class MainActivity extends Activity {
 
         @Override
         public void onNewState(Mat state) {
+
             controller.calculateCommand(state);
         }
     };
