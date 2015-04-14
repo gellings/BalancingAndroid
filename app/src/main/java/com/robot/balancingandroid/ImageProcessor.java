@@ -133,7 +133,7 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
 
         @Override
         protected void onPostExecute(Double result) {
-            if (result != null) {
+            if (result != null && !result.isNaN() && !result.isInfinite()) {
                 for (ImageProcessorListener listener : listeners) {
                     listener.onNewFlow(result);
                 }
@@ -215,7 +215,7 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
 
     private Rect roi = new Rect(60, 20, 200, 200);
 
-    // line detectino stuff
+    // line detection stuff
     private LineDetectionTask lineDetectionTask;
 
     ImageProcessor() {

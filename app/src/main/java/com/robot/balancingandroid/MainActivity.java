@@ -213,7 +213,7 @@ public class MainActivity extends Activity {
     private Controller.ControllerListener controllerListener = new Controller.ControllerListener() {
 
         private long lastTime = elapsedRealtimeNanos();
-        private double OMEGA_MAX = 8.43; //rad/s
+        private final double OMEGA_MAX = 8.43; //rad/s
         private double omega = 0;
 
         int update_counter = 0;
@@ -221,32 +221,29 @@ public class MainActivity extends Activity {
         @Override
         public void onNewCommand(double omega_dot) {
 
-            omega_dotCurrent = omega_dot;
-
             //integrate
             long time = elapsedRealtimeNanos();
             double deltaT = ((double)(time - lastTime)) / 1e9;
             lastTime = time;
-            omega += omega_dot*deltaT;
+            double newOmega = omega + omega_dot * deltaT;
 
             //saturate
-            if(omega > OMEGA_MAX)
-                omega = OMEGA_MAX;
-            if(omega < -OMEGA_MAX)
-                omega = -OMEGA_MAX;
+            if(newOmega > OMEGA_MAX) {
+                newOmega = OMEGA_MAX;
+            }
+            if(newOmega < -OMEGA_MAX) {
+                newOmega = -OMEGA_MAX;
+            }
 
-            int command0 = 50 + ((int)( 50 * omega/OMEGA_MAX) + headingCommand);
-            int command2 = 50 - ((int)( 50 * omega/OMEGA_MAX) - headingCommand);
+            omega_dotCurrent = (float)((newOmega - omega) / deltaT);
+            omega = newOmega;
 
-            if (command0 < 0) { command0 = 0; }
-            if (command0 > 100) { command0 = 100; }
+            estimator.onInputChanged((float)omega_dotCurrent);
+            omega = newOmega;
 
-            if (command2 < 0) { command2 = 0; }
-            if (command2 > 100) { command2 = 100; }
-
-            if(update_counter == 2) {
-                noise.setPulsePercent(command0, 0);
-                noise.setPulsePercent(command2, 2);
+            if(update_counter == 1) {
+                noise.setPulsePercent(50 + ((int)( 35 * omega/OMEGA_MAX) + headingCommand), 0);
+                noise.setPulsePercent(50 - ((int)( 35 * omega/OMEGA_MAX) - headingCommand), 2);
                 update_counter = 0;
             }
             else {
@@ -278,7 +275,7 @@ public class MainActivity extends Activity {
         @Override
         public void onCommandUsed() {
             // send the latest omega to the estimator
-            estimator.onInputChanged((float)omega_dotCurrent);
+//            estimator.onInputChanged((float)omega_dotCurrent);
         }
     };
 }
