@@ -21,11 +21,11 @@ public class Controller {
         controllerListener = contlist;
 
         K = Mat.zeros(1, 3, CvType.CV_32FC1);
-        float val = -1090.3f;
+        float val = -1325f;
         K.put(0, 0, val);
-        val = -164.8f;
+        val = -262.5f;
         K.put(0, 1, val);
-        val = -0.3f;
+        val = -0.1068f;
         K.put(0, 2, val);
     }
 
