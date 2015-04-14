@@ -27,12 +27,20 @@ public class Controller {
 //        K.put(0, 1, val);
 //        val = -0.22282f;
 //        K.put(0, 2, val);
-        float val = -140.0f;
-        K.put(0, 0, val);
-        val = -120.0f;
-        K.put(0, 1, val);
-        val = -0.22282f;
-        K.put(0, 2, val);
+
+        setGains(-140.0f, -120.0f, -0.2282f);
+    }
+
+    public void setGains(float k1, float k2, float k3) {
+        K.put(0, 0, k1);
+        K.put(0, 1, k2);
+        K.put(0, 2, k3);
+    }
+
+    public float[] getGains() {
+        float gains[] = new float[3];
+        K.get(0,0,gains);
+        return gains;
     }
 
     public void calculateCommand(Mat state) {

@@ -44,6 +44,10 @@ public class MainActivity extends Activity {
     private EditText roiWidth;
     private EditText roiHeight;
 
+    private EditText k1;
+    private EditText k2;
+    private EditText k3;
+
     private PulseGenerator noise;
     private Thread noiseThread;
 
@@ -51,6 +55,7 @@ public class MainActivity extends Activity {
     private Controller controller;
     private HeadingController headingController;
 
+    private double omega = 0;
     private double omega_dotCurrent = 0;
 
     private int headingCommand = 0;
@@ -84,6 +89,15 @@ public class MainActivity extends Activity {
         roiY.setText(Integer.toString(roi.y));
         roiWidth.setText(Integer.toString(roi.width));
         roiHeight.setText(Integer.toString(roi.height));
+
+        k1 = (EditText)findViewById(R.id.k1);
+        k2 = (EditText)findViewById(R.id.k2);
+        k3 = (EditText)findViewById(R.id.k3);
+
+        float gains[] = controller.getGains();
+        k1.setText(Float.toString(gains[0]));
+        k2.setText(Float.toString(gains[1]));
+        k3.setText(Float.toString(gains[2]));
 
         imageProcessor = new ImageProcessor();
         imageProcessor.setRoi(roi);
@@ -127,6 +141,19 @@ public class MainActivity extends Activity {
                     roiWidth.setText(Integer.toString(roi.width));
                     roiHeight.setText(Integer.toString(roi.height));
                 }
+            }
+        });
+
+        Button gainsButton = (Button) findViewById(R.id.set_gains);
+        gainsButton.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                controller.setGains(
+                        Float.parseFloat(k1.getText().toString()),
+                        Float.parseFloat(k2.getText().toString()),
+                        Float.parseFloat(k3.getText().toString()));
+                omega_dotCurrent = 0.0;
+                omega = 0.0;
             }
         });
     }
@@ -214,7 +241,6 @@ public class MainActivity extends Activity {
 
         private long lastTime = elapsedRealtimeNanos();
         private final double OMEGA_MAX = 8.43; //rad/s
-        private double omega = 0;
 
         int update_counter = 0;
 

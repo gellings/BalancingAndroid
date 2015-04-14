@@ -89,12 +89,51 @@
         android:layout_below="@id/roi_height"
         android:layout_alignParentLeft="true"
         android:text="@string/update_roi"/>
+
+    <EditText
+        android:id="@+id/k1"
+        android:layout_width="@dimen/number_input_width"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/update_roi"
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="@dimen/spacing_vertical"
+        android:inputType="numberSigned|numberDecimal" />
+
+    <EditText
+        android:id="@+id/k2"
+        android:layout_width="@dimen/number_input_width"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/update_roi"
+        android:layout_toRightOf="@id/k1"
+        android:layout_marginTop="@dimen/spacing_vertical"
+        android:layout_marginLeft="@dimen/spacing_horizontal"
+        android:inputType="numberSigned|numberDecimal" />
+
+    <EditText
+        android:id="@+id/k3"
+        android:layout_width="@dimen/number_input_width"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/update_roi"
+        android:layout_toRightOf="@id/k2"
+        android:layout_marginTop="@dimen/spacing_vertical"
+        android:layout_marginLeft="@dimen/spacing_horizontal"
+        android:inputType="numberSigned|numberDecimal" />
+
+    <Button
+        android:id="@+id/set_gains"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/k3"
+        android:layout_below="@id/update_roi"
+        android:layout_marginTop="@dimen/spacing_vertical"
+        android:layout_marginLeft="@dimen/spacing_horizontal"
+        android:text="Go" />
     
     <FrameLayout
         android:id="@+id/main_image_container"
         android:layout_width="fill_parent"
         android:layout_height="@dimen/main_image_height"
-        android:layout_below="@id/update_roi"
+        android:layout_below="@id/set_gains"
         android:layout_marginTop="@dimen/spacing_vertical" >
 
         <org.opencv.android.JavaCameraView
