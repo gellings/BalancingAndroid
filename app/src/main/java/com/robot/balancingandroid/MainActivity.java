@@ -242,8 +242,8 @@ public class MainActivity extends Activity {
             omega = newOmega;
 
             if(update_counter == 1) {
-                noise.setPulsePercent(50 + ((int)( 35 * omega/OMEGA_MAX) + headingCommand), 0);
-                noise.setPulsePercent(50 - ((int)( 35 * omega/OMEGA_MAX) - headingCommand), 2);
+                noise.setPulsePercent(50 + ((int)( 35 * omega/OMEGA_MAX) - headingCommand), 0);
+                noise.setPulsePercent(50 - ((int)( 35 * omega/OMEGA_MAX) + headingCommand), 2);
                 update_counter = 0;
             }
             else {

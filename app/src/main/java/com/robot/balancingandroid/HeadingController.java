@@ -40,7 +40,7 @@ public class HeadingController {
         integrator = 0;
 
         kp = 0.1;
-        ki = 0.001;
+        ki = 0.00;
 
         initialized = false;
     }
