@@ -52,6 +52,11 @@ public class Estimator
     private double thetaDotMes = 0;
     private boolean newThetaDotMes = false;
 
+    private double thetaOffset;
+    private double thetaSum = 0.0;
+    private int initCount = 0;
+    private final int initNum = 20;
+
     private double accelLPFCuttoffFrequency = 10.0;
     private double alphaAccelLPF = Math.exp(-accelLPFCuttoffFrequency * 2*Math.PI * sensorSampleTimeS);
 
@@ -171,33 +176,45 @@ public class Estimator
     {
         @Override
         public void onSensorChanged(SensorEvent event) {
-            if (event.sensor == gyro)
-            {
-                rawThetaDotMes = event.values[0];
-                thetaDotMes = alphaGyroLPF*thetaDotMes + (1 - alphaGyroLPF)*rawThetaDotMes;
-                newThetaDotMes = true;
-            }
-            else if (event.sensor == accel)
-            {
-                rawThetaMes = Math.atan2(-event.values[2],event.values[1]);
-                thetaMes = alphaAccelLPF*thetaMes + (1 - alphaAccelLPF)*rawThetaMes;
-                newThetaMes = true;
-
-                StringBuilder sb = new StringBuilder();
-                sb.append(SystemClock.elapsedRealtime()).append(", ").append(thetaMes).append(", ").append(thetaDotMes).append(", ").append(flowMes).append("\n");
-                try {
-                    outputStream.write(sb.toString().getBytes());
-                } catch (IOException e) {
-                    Log.e(TAG, "could not write");
-                    e.printStackTrace();
+            if (initCount < initNum) {
+                if (event.sensor == accel) {
+                    thetaSum += Math.atan2(-event.values[2], event.values[1]);
+                    initCount++;
                 }
+            } else if (initCount == initNum) {
+                thetaOffset = thetaSum / initNum;
+                initCount++;
+                Log.i("BalancingAndroid", "theta offset initialized: " + thetaOffset);
+            } else {
+                if (event.sensor == gyro)
+                {
+                    rawThetaDotMes = event.values[0];
+                    thetaDotMes = alphaGyroLPF*thetaDotMes + (1 - alphaGyroLPF)*rawThetaDotMes;
+                    newThetaDotMes = true;
+                }
+                else if (event.sensor == accel)
+                {
+                    rawThetaMes = Math.atan2(-event.values[2],event.values[1]) - thetaOffset;
+                    thetaMes = alphaAccelLPF*thetaMes + (1 - alphaAccelLPF)*rawThetaMes;
+                    newThetaMes = true;
 
-                if(updateDone) {
-                    updateEstimate();
-                } else {
-                    Log.i("BalancingAndroid", "skipped an update");
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(SystemClock.elapsedRealtime()).append(", ").append(thetaMes).append(", ").append(thetaDotMes).append(", ").append(flowMes).append("\n");
+                    try {
+                        outputStream.write(sb.toString().getBytes());
+                    } catch (IOException e) {
+                        Log.e(TAG, "could not write");
+                        e.printStackTrace();
+                    }
+
+                    if(updateDone) {
+                        updateEstimate();
+                    } else {
+                        Log.i("BalancingAndroid", "skipped an update");
+                    }
                 }
             }
+
         }
 
         @Override
