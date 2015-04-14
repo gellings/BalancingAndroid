@@ -58,7 +58,8 @@ public class Estimator
     private final int initNum = 20;
 
     private double accelLPFCuttoffFrequency = 10.0;
-    private double alphaAccelLPF = Math.exp(-accelLPFCuttoffFrequency * 2*Math.PI * sensorSampleTimeS);
+    //    private double alphaAccelLPF = Math.exp(-accelLPFCuttoffFrequency * 2*Math.PI * sensorSampleTimeS);
+    private double alphaAccelLPF = 0.1;
 
     private double rawThetaMes = 0;
     private double thetaMes = 0;
@@ -82,7 +83,7 @@ public class Estimator
     private float g = 9.81f;// m/s2
 
     private float m1 = 0.1162f;// kg
-    private float l1 = .04f;// m
+    private float l1 = 0.045f;// m
 
     private float m2 = 0.5647f;// kg
     private float l2 = 0.28f;// m
@@ -240,33 +241,33 @@ public class Estimator
         float val;
         if(newThetaMes)
         {
-            val = 2.6635f;
+            val = 5.3993f;
             L.put(0,0,val);
-            val = 12.1742f;
+            val = 27.1132f;
             L.put(1,0,val);
-            val = 0.0510f;
+            val = -0.0247f;
             L.put(2,0,val);
             y.put(0,0,thetaMes);
             newThetaMes = false;
         }
         if(newThetaDotMes)
         {
-            val = 1.4172f;
+            val = 0.9249f;
             L.put(0,1,val);
-            val = 9.8864f;
+            val = 4.6644f;
             L.put(1,1,val);
-            val = -0.3343f;
+            val = -0.4189f;
             L.put(2,1,val);
             y.put(1,0,thetaDotMes);
             newThetaDotMes = false;
         }
         if(newFlowMes)
         {
-            val = 0.1985f;
+            val = 0.0550f;
             L.put(0,2,val);
-            val = -11.1802f;
+            val = -27.3714f;
             L.put(1,2,val);
-            val = 521.0064f;
+            val = 711.0895f;
             L.put(2,2,val);
             y.put(2,0,flowMes);
             newFlowMes = false;
@@ -312,11 +313,8 @@ public class Estimator
 //            e.printStackTrace();
 //        }
 
-        if(flow != Double.NaN);
-        {
-            flowMes = FLOW_PIXELS_TO_METERS * flow;
-            newFlowMes = true;
-        }
+        flowMes = FLOW_PIXELS_TO_METERS * flow;
+        newFlowMes = true;
     }
 
     public Mat getState() {

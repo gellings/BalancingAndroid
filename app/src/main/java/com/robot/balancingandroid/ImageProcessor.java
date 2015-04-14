@@ -130,7 +130,7 @@ public class ImageProcessor implements CameraBridgeViewBase.CvCameraViewListener
 
         @Override
         protected void onPostExecute(Double result) {
-            if (result != null) {
+            if (result != null && !result.isNaN() && !result.isInfinite()) {
                 for (ImageProcessorListener listener : listeners) {
                     listener.onNewFlow(result);
                 }
